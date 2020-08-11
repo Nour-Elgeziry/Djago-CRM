@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import *
 from .forms import OrderForm
+from .filters import OrderFilter
 from django.forms import inlineformset_factory
 # Create your views here.
 
@@ -36,7 +37,10 @@ def customer(request, pk):
     orders = customer.order_set.all()
     #get customer total orders
     total_order = orders.count()
-    context = {'customer':customer, 'orders':orders, 'total_order':total_order }
+    #seeting filter
+    myFilter = OrderFilter(request.GET, queryset=orders)
+    orders = myFilter.qs
+    context = {'customer':customer, 'orders':orders, 'total_order':total_order, 'myFilter':myFilter }
     return render(request, 'accounts/customer.html', context)
 
     ## Order module instace used to change existing form, weher inintial  is to define inintial value for s pecific field
@@ -76,8 +80,8 @@ def updateOrder(request, pk):
         if form.is_valid():
             form.save()
             return redirect('/')
-    
-    context = {'form':form}
+    #change key to formset to match variable name in order-form template, template is shared by create and update order
+    context = {'formset':form}
     return render(request, 'accounts/order_form.html', context)
 
 def deleteOrder(request,pk):
